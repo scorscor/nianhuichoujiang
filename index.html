@@ -4,7 +4,7 @@
     <meta name="screen-orientation" content="portrait">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0"/>
-    <title>年会抽奖小程序，WX：LF110415</title>
+    <title></title>
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/wall.css">
     <style type="text/css">
@@ -158,14 +158,49 @@
                'button-success': running}">{{running?'停!':'开始'}}</button>
     <button class="pure-button button-warning" @click="reset">重置</button>
 </div>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="http://mockjs.com/dist/mock.js"></script>
+<script type="text/javascript" src="js/myMock.js"></script>
 <script type="text/javascript" src="js/zepto.js"></script>
 <script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript" src="js/api.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
 <script type="text/javascript" src="js/tagcanvas.js"></script>
-<script type="text/javascript" src="js/member.js"></script>
+<!--<script type="text/javascript" src="js/member.js"></script>-->
 <script type="text/javascript">
-    (function(){
+    // function getUser() {
+    //     var p=new Promise(function (resolve,reject) {
+    //         faceSignSave().then(res =>{
+    //             member = res.Users
+    //             var map={}
+    //             member.forEach((item,index)=>{
+    //                 map[item.id+'号-No.'+item.id]=1
+    //             })
+    //             resolve(map)
+    //         }).catch(err=>{
+    //             reject(err)
+    //         })
+    //     })
+    //     return p;
+    // }
+    var member={}
+    faceSignSave().then(res =>{
+        var Users = res.Users
+
+        Users.forEach((item,index)=>{
+            member[item.id+'号-No.'+item.id]=1
+        })
+        start()
+    })
+    function start(){
         var choosed = JSON.parse(localStorage.getItem('choosed')) || {};
-        console.log(choosed);
+        // var choosed
+        // getUser().then(d=>{
+        //     console.log(d)
+        //     choosed=d
+        // })
+
         var speed = function(){
             return [0.1 * Math.random() + 0.01, -(0.1 * Math.random() + 0.01)];
         };
@@ -186,25 +221,23 @@
         var lottery = function(count){
             var list = canvas.getElementsByTagName('a');
             var color = 'yellow';
-            var ret = member
-                .filter(function(m, index){
+
+            var ret = member.filter(function(m, index){
                     m.index = index;
                     return !choosed[getKey(m)];
-                })
-                .map(function(m){
+                }).map(function(m){
                     return Object.assign({
                       score: Math.random()
                     }, m);
-                })
-                .sort(function(a, b){
+                }).sort(function(a, b){
                     return a.score - b.score;
-                })
-                .slice(0, count)
+                }).slice(0, count)
                 .map(function(m){
                   choosed[getKey(m)] = 1;
                   list[m.index].style.color = color;
                   return m.name + '<br/>' + m.phone; 
                 });
+            console.log(choosed)
             localStorage.setItem('choosed', JSON.stringify(choosed));
             return ret;
         };
@@ -224,12 +257,14 @@
             },
             mounted () {
                 canvas.innerHTML = createHTML();
+
                 TagCanvas.Start('myCanvas', '', {
                     textColour: null,
                     initial: speed(),
                     dragControl: 1,
                     textHeight: 14
                 });
+
             },
             methods: {
                 reset: function(){
@@ -266,7 +301,7 @@
                 }
             }
         });
-    })();
+    }
 </script>
 </body>
 </html>

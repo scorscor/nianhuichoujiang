@@ -61,3 +61,10 @@ var member=[
 {"phone":"No.60","name":"苦荷"},
 {"phone":"No.61","name":"狼桃"}
 ]
+faceSignSave().then(res =>{
+    member = res.Users
+    var map={}
+    member.forEach((item,index)=>{
+        map[item.id+'号-No.'+item.id]=1
+    })
+})
