@@ -12,6 +12,28 @@
             width: 100%;
             height: 100%;
         }
+        #appLoading { width: 100%; height: 100%; }
+        #appLoading span {
+            position: absolute;
+            display: block;
+            font-size: 50px;
+            line-height: 50px;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 100px;
+            -webkit-transform: translateY(-50%)  translateX(-50%);
+            transform: translateY(-50%)  translateX(-50%);
+        }
+        .title-mata{
+            position: fixed;
+            top: 100px;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            left: 40%;
+            z-index: 9;
+        }
         .result {
             position: absolute;
             height: 320px;
@@ -71,7 +93,7 @@
         .pure-button {
             font-family: inherit;
             font-size: 100%;
-            padding: .5em 1em;
+            padding: .5em 1.5em;
             color: #444;
             color: rgba(0,0,0,.8);
             border: 0 rgba(0,0,0,0);
@@ -119,7 +141,7 @@
             margin: 5px;
             padding: 10px 0;
             text-align: center;
-            width:50px;
+            width:70px;
         }
         .mask {
             -webkit-filter:blur(5px);
@@ -137,20 +159,29 @@
     </style>
 </head>
 <body>
+<div id="appLoading">
+    <span>加载中</span>
+</div>
 <div id="main" class="wall">
+
     <div class="result-btn">
        <a href="./result.html" target="_blank">获奖名单</a>
     </div>
 </div>
 <div id="result" class="result">
 </div>
-<div id="tools" class="tools">
-     <button
-        v-for="value in btns"
-        @click="onClick(value)"
-        class="pure-button"
-        :class="{ 'button-error': selected == value}"
-       >{{value}}</button>
+<div id="tools" class="tools" style="display: none">
+    <div class="title-mata"><span style="color: yellow;">{{currentWard.title}}[{{awardNum}}/{{currentWard.num}}]</span>，奖品：{{wardName}}</div>
+<!--    <button-->
+<!--        v-for="value in btns"-->
+<!--        @click="onClick(value)"-->
+<!--        class="pure-button"-->
+<!--        :class="{ 'button-error': selected == value}"-->
+<!--       >{{value}}</button>-->
+
+    <button  class="pure-button "  v-for="(item, key, index) in wardInfo" :class="{ 'button-error': selected == key}" @click="onClick(key)">
+        {{item.title}}
+    </button>
     <button
        class="pure-button"
        @click="toggle"
@@ -167,49 +198,33 @@
 <script type="text/javascript" src="js/api.js"></script>
 <script type="text/javascript" src="js/vue.js"></script>
 <script type="text/javascript" src="js/tagcanvas.js"></script>
-<!--<script type="text/javascript" src="js/member.js"></script>-->
 <script type="text/javascript">
-    // function getUser() {
-    //     var p=new Promise(function (resolve,reject) {
-    //         faceSignSave().then(res =>{
-    //             member = res.Users
-    //             var map={}
-    //             member.forEach((item,index)=>{
-    //                 map[item.id+'号-No.'+item.id]=1
-    //             })
-    //             resolve(map)
-    //         }).catch(err=>{
-    //             reject(err)
-    //         })
-    //     })
-    //     return p;
-    // }
-    var member={}
-    faceSignSave().then(res =>{
-        var Users = res.Users
-
+    var member=[]
+    getAllUsers().then(res =>{
+        let Users = res.Users
         Users.forEach((item,index)=>{
-            member[item.id+'号-No.'+item.id]=1
+            member.push({phone:item.id+'号',name:item.id+'号',index:item.index})
         })
         start()
     })
+
+    /**
+     * 抽奖方法
+     */
     function start(){
         var choosed = JSON.parse(localStorage.getItem('choosed')) || {};
-        // var choosed
-        // getUser().then(d=>{
-        //     console.log(d)
-        //     choosed=d
-        // })
-
         var speed = function(){
             return [0.1 * Math.random() + 0.01, -(0.1 * Math.random() + 0.01)];
         };
         var getKey = function(item){
-            return item.name + '-' + item.phone;
+            // return item.name + '-' + item.phone;
+            return item.name ;
         };
         var createHTML = function(){
-            var html = [ '<ul>' ];
-            console.log(member)
+            var html = [
+
+                '<ul>'
+            ];
             member.forEach(function(item, index){
                 item.index = index;
                 var key = getKey(item);
@@ -236,7 +251,8 @@
                 .map(function(m){
                   choosed[getKey(m)] = 1;
                   list[m.index].style.color = color;
-                  return m.name + '<br/>' + m.phone; 
+                  // return m.name + '<br/>' + m.phone;
+                  return m.phone;
                 });
             console.log(choosed)
             localStorage.setItem('choosed', JSON.stringify(choosed));
@@ -250,22 +266,32 @@
         new Vue({
             el: '#tools',
             data: {
-                selected: 30,
+                selected: 0,
                 running: false,
                 btns: [
                     30, 10, 5, 2, 1
-                ]
+                ],
+                wardName:'iphoneX',
+                wardInfo:[],
+                currentTime:1,
+                currentWard:{},
+                awardNum:0,
+                allTime:5
             },
             mounted () {
+                document.getElementById('tools').style.display = 'block';
+                document.getElementById('appLoading').style.display = 'none';
                 canvas.innerHTML = createHTML();
-
                 TagCanvas.Start('myCanvas', '', {
                     textColour: null,
                     initial: speed(),
                     dragControl: 1,
                     textHeight: 14
                 });
-
+                getAllTime().then(d=>{
+                    this.wardInfo=d.award
+                    this.currentWard=d.award[0]
+                })
             },
             methods: {
                 reset: function(){
@@ -274,18 +300,31 @@
                         location.reload(true);
                     }
                 },
-                onClick: function(num){
+                onClick: function(key){
+                    this.awardNum=0
                     $('#result').css('display', 'none');
                     $('#main').removeClass('mask');
-                    this.selected = num;
+                    this.selected = key ;
+                    let filters = this.wardInfo.filter((item,index)=>index==key)
+                    this.currentTime=key+1
+                    this.wardName=filters[0].name
+                    this.currentWard=filters[0]
                 },
                 toggle: function(){
                     if(this.running){
                         TagCanvas.SetSpeed('myCanvas', speed());
-                        var ret = lottery(this.selected);
+                        var ret = lottery(this.wardInfo[this.selected].num);//抽取人数
+                        console.log(ret)
+                        let params={
+                            users:ret,
+                            title:this.wardInfo[this.selected].title
+                        }
+                        saveAwardUsers(params)
                         if (ret.length === 0) {
                             $('#result').css('display', 'block').html('<span>已抽完</span>');
                             return
+                        }else{
+                            this.awardNum=this.wardInfo[this.selected].num
                         }
                         $('#result').css('display', 'block').html('<span>' + ret.join('</span><span>') + '</span>');
                         TagCanvas.Reload('myCanvas');
