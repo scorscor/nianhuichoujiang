@@ -172,13 +172,6 @@
 </div>
 <div id="tools" class="tools" style="display: none">
     <div class="title-mata"><span style="color: yellow;">{{currentWard.title}}[{{awardNum}}/{{currentWard.num}}]</span>，奖品：{{wardName}}</div>
-<!--    <button-->
-<!--        v-for="value in btns"-->
-<!--        @click="onClick(value)"-->
-<!--        class="pure-button"-->
-<!--        :class="{ 'button-error': selected == value}"-->
-<!--       >{{value}}</button>-->
-
     <button  class="pure-button "  v-for="(item, key, index) in wardInfo" :class="{ 'button-error': selected == key}" @click="onClick(key)">
         {{item.title}}
     </button>
@@ -200,6 +193,9 @@
 <script type="text/javascript" src="js/tagcanvas.js"></script>
 <script type="text/javascript">
     var member=[]
+    /**
+     * 接口获取所有抽奖用户
+     * */
     getAllUsers().then(res =>{
         let Users = res.Users
         Users.forEach((item,index)=>{
