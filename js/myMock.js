@@ -1,5 +1,5 @@
 Mock.mock(
-    'http://192.168.1.92/api/getUser',
+    'http://127.0.0.1/api/getUser',
     {
         'Users|90-160':[{
         'id|+1': 1,
@@ -9,7 +9,7 @@ Mock.mock(
         }
     );
 Mock.mock(
-    'http://192.168.1.92/api/getConfig', {
+    'http://127.0.0.1/api/getConfig', {
         award:[
             {name:'iphonex',num:1,title:'一等奖'},
             {name:'iphone11',num:3,title:'二等奖'},
